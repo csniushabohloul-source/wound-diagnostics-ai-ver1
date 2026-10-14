@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WoundCare AI - سامانه تشخیصی مقرون‌به‌صرفه و مراقبت پیشگیرانه زخم‌های پوستی</title>
+  <meta name="description" content="سامانه پایش هوشمند زخم پوستی، پایش طولی و هشدارهای پیشگیرانه بالینی بر پایه هوش مصنوعی در لبه (Edge AI)">
+  
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Sticky Glassmorphic Header -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">W</div>
+      <div class="logo-title">
+        <h1>سامانه هوشمند تشخیص و پایش پیشگیرانه زخم (Edge AI)</h1>
+        <p>Cost-Effective AI Skin Wound Diagnostics & Longitudinal Telemedicine</p>
+      </div>
+    </div>
+
+    <div class="header-badges">
+      <div class="badge" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.3); color: #7dd3fc;">
+        <span>🎓</span> پژوهشگر: نیوشا بهلول | استاد راهنما: سرکار خانم دکتر مائده سادات طاهایی
+      </div>
+      <div class="badge badge-edge">
+        <span>⚡</span> مدل سبک: ۱.۴۶ مگابایت (Edge AI)
+      </div>
+      <div class="badge badge-model">
+        <span>🧠</span> پارامترها: ۳۸۲ هزار (Cost-Effective)
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    
+    <!-- Sidebar: Controls & Patient Cases -->
+    <aside>
+      <!-- Upload Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>آپلود تصویر بیمار</span>
+          <span class="spinner" id="loadingSpinner"></span>
+        </div>
+        <div class="upload-dropzone" id="uploadDropzone">
+          <input type="file" id="fileInput" accept="image/*" style="display: none;">
+          <div class="upload-icon">📷</div>
+          <p style="font-size: 0.9rem; font-weight: 600;">کلیک یا کشیدن عکس گوشی موبایل</p>
+          <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">فرمت‌های JPG، PNG و WebP</p>
+        </div>
+
+        <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">سنجش کیفیت تصویر:</span>
+          <span class="quality-pill quality-ok" id="qualityBadge">✓ آماده تحلیل</span>
+        </div>
+      </div>
+
+      <!-- Sample Patients Carousel -->
+      <div class="card">
+        <div class="card-title">
+          <span>بیماران ویزیت طولی (LUTSeg Samples)</span>
+        </div>
+        <div class="samples-grid" id="samplesGrid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Tissue Chart -->
+      <div class="card">
+        <div class="card-title">
+          <span>ترکیب درصدی بافت‌های زخم</span>
+        </div>
+        <div style="height: 200px; position: relative;">
+          <canvas id="tissuePieChart"></canvas>
+        </div>
+        
+        <div class="legend-grid">
+          <div class="legend-item"><div class="legend-dot" style="background: var(--color-granulation);"></div>گرانولاسیون (سرخ)</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--color-slough);"></div>اسلاف / فیبرین (زرد)</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--color-epithelial);"></div>اپیتلیال (پوششی)</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--color-necrotic);"></div>نکروتیک (سیاه)</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content: Viewer, Metrics & Clinical CDSS -->
+    <main>
+      
+      <!-- Metrics Row -->
+      <div class="stats-grid">
+        <div class="stat-card hi">
+          <div class="stat-label">شاخص التیام (Healing Index)</div>
+          <div class="stat-val" id="valHI">--%</div>
+          <div class="stat-sub">گرانولاسیون + اپیتلیال</div>
+        </div>
+
+        <div class="stat-card risk">
+          <div class="stat-label">امتیاز ریسک بیوفیلم (BDRS)</div>
+          <div class="stat-val" id="valRisk">--/100</div>
+          <div class="stat-sub">خطر عفونت و تخریب</div>
+        </div>
+
+        <div class="stat-card slough">
+          <div class="stat-label">درصد اسلاف (غیرحیاتی)</div>
+          <div class="stat-val" id="valSlough">--%</div>
+          <div class="stat-sub">نیاز به تمیزسازی بستر</div>
+        </div>
+
+        <div class="stat-card speed">
+          <div class="stat-label">زمان استنتاج موبایل (CPU)</div>
+          <div class="stat-val" id="valLatency">-- ms</div>
+          <div class="stat-sub">مدل فوق‌سریع لبه</div>
+        </div>
+      </div>
+
+      <!-- Viewer Container -->
+      <div class="card">
+        <div class="card-title">
+          <span>پایش بصری و اورلی پیکسلی بافت‌ها</span>
+          <span style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: normal;">تفکیک هوشمند ۵ کلاسه (LUTSeg Canonical)</span>
+        </div>
+
+        <div class="viewer-container">
+          <!-- Image Box 1: Original with Canvas Overlay -->
+          <div>
+            <div class="image-box">
+              <span class="box-tag">تصویر بالینی + پوشش ماسک</span>
+              <img id="originalImg" src="" alt="Clinical Wound Photo">
+              <canvas id="overlayCanvas"></canvas>
+            </div>
+            
+            <div class="slider-control">
+              <label for="opacitySlider">شفافیت ماسک (Overlay):</label>
+              <input type="range" id="opacitySlider" min="0" max="1" step="0.05" value="0.45">
+              <span id="opacityVal" style="font-size: 0.85rem; font-weight: 600; width: 45px;">45%</span>
+            </div>
+          </div>
+
+          <!-- Image Box 2: Segmented Tissue Mask -->
+          <div>
+            <div class="image-box">
+              <span class="box-tag">ماسک ۵ بافت تفکیک‌شده</span>
+              <img id="maskImg" src="" alt="Predicted Tissue Mask">
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-dim); text-align: center; margin-top: 10px;">
+              تولیدشده توسط مدل مقرون‌به‌صرفه Cost-Effective UNet در کمتر از ۱۵۰ میلی‌ثانیه
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CDSS Clinical Decision Support Card -->
+      <div class="card cdss-box" id="cdssBox">
+        <div class="card-title" style="border-bottom-color: rgba(255,255,255,0.1);">
+          <span>سیستم تصمیم‌یار بالینی و هشدار پیشگیرانه (CDSS Engine)</span>
+          <span id="cdssUrgency" style="font-size: 0.82rem; color: var(--accent-cyan);"></span>
+        </div>
+
+        <div class="cdss-badge" id="cdssBadge">در حال ارزیابی...</div>
+
+        <!-- TIME Framework Recommendations -->
+        <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-top: 12px;">راهنمای درمانی ساختاریافته بر مبنای چارچوب بین‌المللی TIME:</h4>
+        <div class="time-grid">
+          <div class="time-item">
+            <strong>T - مدیریت بافت (Tissue & Debridement)</strong>
+            <span id="timeTissue">در حال بارگذاری...</span>
+          </div>
+          <div class="time-item">
+            <strong>I - کنترل عفونت (Infection & Biofilm)</strong>
+            <span id="timeInfection">در حال بارگذاری...</span>
+          </div>
+          <div class="time-item">
+            <strong>M - تعادل رطوبت (Moisture Balance)</strong>
+            <span id="timeMoisture">در حال بارگذاری...</span>
+          </div>
+          <div class="time-item">
+            <strong>E - پیشروی لبه زخم (Edge Advancement)</strong>
+            <span id="timeEdge">در حال بارگذاری...</span>
+          </div>
+        </div>
+
+        <!-- Patient Smart Message -->
+        <div class="patient-message">
+          <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">پیام خودکار به تلفن همراه بیمار:</strong>
+          <span id="patientMsg">در حال بررسی...</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

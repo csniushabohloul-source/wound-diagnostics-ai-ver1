@@ -1,0 +1,500 @@
+/* Modern Telemedicine & Edge AI Clinical Design System */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Vazirmatn:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg-primary: #0a0f1d;
+  --bg-secondary: #11192e;
+  --card-bg: rgba(22, 32, 57, 0.7);
+  --card-border: rgba(91, 192, 190, 0.15);
+  --accent-cyan: #48cae4;
+  --accent-teal: #5bc0be;
+  --accent-blue: #3a86ff;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  
+  /* Clinical Tissue Colors (LUTSeg Standard) */
+  --color-epithelial: #2ecc71; /* Green */
+  --color-slough: #f1c40f;     /* Yellow */
+  --color-granulation: #e056fd;/* Magenta/Red */
+  --color-necrotic: #e67e22;   /* Dark Orange/Eschar */
+  --color-bg: #000000;
+  
+  --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(58, 134, 255, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(91, 192, 190, 0.10) 0px, transparent 50%);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism Header */
+header {
+  background: rgba(17, 25, 46, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--card-border);
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 20px;
+  color: white;
+  box-shadow: 0 0 15px rgba(72, 202, 228, 0.4);
+}
+
+.logo-title h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.logo-title p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.header-badges {
+  display: flex;
+  gap: 10px;
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.badge-edge {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border-color: rgba(46, 204, 113, 0.3);
+}
+
+.badge-model {
+  background: rgba(58, 134, 255, 0.15);
+  color: #60a5fa;
+  border-color: rgba(58, 134, 255, 0.3);
+}
+
+/* Main Container Layout */
+.container {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Glass Cards */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-glow);
+  margin-bottom: 1.5rem;
+  transition: var(--transition);
+}
+
+.card:hover {
+  border-color: rgba(91, 192, 190, 0.3);
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 0.75rem;
+}
+
+/* Upload Area */
+.upload-dropzone {
+  border: 2px dashed rgba(91, 192, 190, 0.3);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(17, 25, 46, 0.4);
+  transition: var(--transition);
+}
+
+.upload-dropzone:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(72, 202, 228, 0.05);
+}
+
+.upload-icon {
+  font-size: 2.2rem;
+  color: var(--accent-cyan);
+  margin-bottom: 0.5rem;
+}
+
+/* Sample Thumbnails Carousel */
+.samples-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.sample-item {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.3);
+  transition: var(--transition);
+}
+
+.sample-item:hover, .sample-item.active {
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 202, 228, 0.25);
+}
+
+.sample-item img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+}
+
+.sample-label {
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Center Panel - Viewer */
+.viewer-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .viewer-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.image-box {
+  background: #000;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.image-box canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.box-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(10, 15, 29, 0.8);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Opacity Slider */
+.slider-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  background: rgba(17, 25, 46, 0.5);
+  padding: 10px 15px;
+  border-radius: 8px;
+}
+
+.slider-control label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.slider-control input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent-cyan);
+}
+
+/* Metrics Row */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card {
+  background: rgba(17, 25, 46, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.stat-card.hi::before { background: var(--color-epithelial); }
+.stat-card.risk::before { background: #e74c3c; }
+.stat-card.slough::before { background: var(--color-slough); }
+.stat-card.speed::before { background: var(--accent-cyan); }
+
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-val {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.stat-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Tissue Legend */
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+/* Quality Assurance Pill */
+.quality-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.quality-ok {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+}
+
+.quality-poor {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+}
+
+/* CDSS Decision Support Box */
+.cdss-box {
+  background: linear-gradient(145deg, rgba(22, 32, 57, 0.9), rgba(17, 25, 46, 0.95));
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.cdss-box.alert-HIGH {
+  border-color: rgba(230, 126, 34, 0.5);
+  box-shadow: 0 0 25px rgba(230, 126, 34, 0.15);
+}
+
+.cdss-box.alert-CRITICAL {
+  border-color: rgba(231, 76, 60, 0.7);
+  box-shadow: 0 0 25px rgba(231, 76, 60, 0.25);
+}
+
+.cdss-badge {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .time-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.time-item {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  border-left: 3px solid var(--accent-cyan);
+}
+
+.time-item strong {
+  color: var(--accent-cyan);
+  display: block;
+  margin-bottom: 3px;
+  font-size: 0.85rem;
+}
+
+.patient-message {
+  margin-top: 1.25rem;
+  background: rgba(72, 202, 228, 0.08);
+  border: 1px solid rgba(72, 202, 228, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.6;
+}
+
+/* Buttons */
+.btn {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(72, 202, 228, 0.35);
+}
+
+/* Spinner */
+.spinner {
+  display: none;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
