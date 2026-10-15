@@ -38,19 +38,26 @@ def evaluate_and_benchmark(
     print("=" * 60)
 
     # 1. Load Model & Checkpoint
-    model = CostEffectiveMultiTaskWoundUNet(in_channels=3, num_classes=NUM_CLASSES, base_channels=32)
+    base_channels = 24
+    multi_task = True
     if checkpoint_path.exists():
         ckpt = torch.load(checkpoint_path, map_location=device)
+        base_channels = ckpt.get("base_channels", 24)
+        multi_task = ckpt.get("multi_task", True)
+        model = CostEffectiveMultiTaskWoundUNet(in_channels=3, num_classes=NUM_CLASSES, base_channels=base_channels, multi_task=multi_task)
         model.load_state_dict(ckpt["model_state_dict"])
-        print(f"Loaded weights from {checkpoint_path} (Trained Epoch {ckpt.get('epoch', 'N/A')})")
+        b_dice = ckpt.get("val_boundary_dice", 0.0)
+        t_dice = ckpt.get("val_tissue_dice", 0.0)
+        print(f"Loaded weights from {checkpoint_path} (Epoch {ckpt.get('epoch', 'N/A')} | Boundary Dice: {b_dice*100:.2f}% | Tissue Dice: {t_dice*100:.2f}%)")
     else:
+        model = CostEffectiveMultiTaskWoundUNet(in_channels=3, num_classes=NUM_CLASSES, base_channels=base_channels, multi_task=multi_task)
         print("Warning: Checkpoint not found. Evaluating initialized model baseline.")
 
     model.to(device)
     model.eval()
 
     # 2. Computational Efficiency Profiling
-    eff = profile_model_efficiency(model, input_size=(1, 3, 256, 256), device=device)
+    eff = profile_model_efficiency(model, input_size=(1, 3, 160, 160), device=device)
     print("\nComputational Efficiency Metrics:")
     print(f"- Total Parameters: {eff['total_params']:,} (~{eff['total_params']/1e6:.2f}M)")
     print(f"- Memory Size: {eff['param_size_mb']:.2f} MB")
@@ -72,8 +79,16 @@ def evaluate_and_benchmark(
             img_tensor = img.unsqueeze(0).to(device) # (1, 3, H, W)
             mask_tensor = mask.unsqueeze(0).to(device) # (1, H, W)
 
-            logits = model(img_tensor)
-            preds = torch.argmax(logits, dim=1).squeeze(0).cpu().numpy()
+            outputs = model(img_tensor)
+            if isinstance(outputs, dict):
+                prob_bound = torch.sigmoid(outputs["boundary"]).squeeze().cpu().numpy()
+                tissue_probs = torch.softmax(outputs["tissue"], dim=1).squeeze().cpu().numpy()
+                is_wound = (prob_bound > 0.35)
+                tissue_pred = np.argmax(tissue_probs[1:], axis=0) + 1
+                preds = np.zeros_like(prob_bound, dtype=np.uint8)
+                preds[is_wound] = tissue_pred[is_wound]
+            else:
+                preds = torch.argmax(outputs, dim=1).squeeze(0).cpu().numpy().astype(np.uint8)
             target = mask.numpy()
 
             # Binary wound dice

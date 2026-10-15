@@ -124,7 +124,7 @@ class CostEffectiveMultiTaskWoundUNet(nn.Module):
             return tissue_logits
 
         boundary_logits = self.boundary_head(d1)
-        risk_logits = self.risk_classifier(b)
+        risk_logits = self.risk_classifier(self.global_pool(b))
         
         return {
             "tissue": tissue_logits,

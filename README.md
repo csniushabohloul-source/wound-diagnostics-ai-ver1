@@ -161,14 +161,18 @@ Open your browser and navigate to: **`http://localhost:5000`**
 
 ---
 
-## 📊 Supported Datasets
+## 📊 Comprehensive Datasets Matrix & Download Links
 
-All datasets utilized in this research are publicly available for academic research:
-1. **Mendeley Lower Limb & Feet Wound Dataset v3 (2026):** 2,686 clinical images of lower limb wounds and healthy controls. *(Primary internal train/val set)*
-2. **FUSeg Challenge (MICCAI):** 1,210 curated diabetic foot ulcer images with expert pixel annotations. *(Zero-shot external generalization benchmark)*
-3. **LUTSeg (MICCAI ISIC Workshop 2026):** Longitudinal multi-expert dataset (141 frames from 39 patients, 5 tissue classes, consensus of 5 clinicians). *(Longitudinal tracking validation)*
+| Dataset Name | Content & Samples | Role in Research | Local Folder | Official Sources & Download Links |
+| :--- | :--- | :--- | :--- | :--- |
+| **FUSeg** | 1,210 foot ulcer images from 889 patients (1,010 Train, 200 Test) | Primary binary wound segmentation benchmark | `data/raw/fuseg/` | [uwm-bigdata GitHub](https://github.com/uwm-bigdata/wound-segmentation) \| [Zenodo: 10.5281/zenodo.4574347](https://doi.org/10.5281/zenodo.4574347) |
+| **AZH** | ~1,010 clinical images from AZH Wound Care Center | Initial clinical source & patch extraction | `data/raw/azh/` | [UWM Big Data Lab](https://uwm-bigdata.github.io/) \| [wound_dataset Repo](https://github.com/uwm-bigdata/wound-segmentation/tree/master/data/wound_dataset) |
+| **Medetec** | 594 clinical wound images across 15 wound types | Out-of-distribution generalization to pressure & venous ulcers | `data/raw/medetec/` | [Medetec Official](http://www.medetec.co.uk/files/medetec-image-databases.html) \| [GitHub Mirror](https://github.com/mlaradji/deep-learning-for-wound-care) |
+| **Mendeley Lower Limb & Feet v3** | 2,686 wound images with mask + 2,575 healthy control images (331×331, CC BY 4.0) | Cross-dataset generalization & shortcut learning audit | `data/raw/mendeley_lower_limb/` | [Mendeley Data DOI: 10.17632/hsj38fwnvr.3](https://doi.org/10.17632/hsj38fwnvr.3) \| [Kaggle](https://www.kaggle.com/datasets/leoscode/wound-segmentation-images) |
+| **LUTSeg** | 141 longitudinal frames, 39 patients, 5 tissues, 5 clinicians | Pixel-level multi-tissue segmentation & longitudinal monitoring | `data/raw/lutseg/` | [carlosh93/TiSage GitHub](https://github.com/carlosh93/TiSage) \| [arXiv:2608.25866](https://arxiv.org/abs/2608.25866) |
+| **DFUTissue & WoundTissue** | DFUTissue: 1,260 images / WoundTissue: 147 images, 6 tissues | External multi-tissue validation benchmark | `data/raw/dfutissue/` & `data/raw/wound_tissue/` | [DFUTissueSegNet](https://github.com/uwm-bigdata/DFUTissueSegNet) \| [WoundTissue Repo](https://github.com/akabircs/WoundTissue) |
 
-> Detailed audit, download scripts, and citation links are documented in [`data/DATASET_REPORT.md`](data/DATASET_REPORT.md).
+> Detailed data audit, preprocessing pipelines, and licensing details are available in [`data/DATASET_REPORT.md`](data/DATASET_REPORT.md).
 
 ---
 

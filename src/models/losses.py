@@ -6,45 +6,42 @@ from typing import Optional
 
 class MultiClassDiceLoss(nn.Module):
     """
-    Multi-Class Dice Loss designed for wound tissue segmentation with class imbalance.
-    Computes smooth Dice coefficient across all classes (excluding or downweighting background).
+    Robust Multi-Class Dice Loss for wound tissue segmentation.
+    Combines binary wound bed localization (wound vs background) with
+    class-wise Dice over tissues present in the ground truth.
     """
 
-    def __init__(self, num_classes: int = 6, smooth: float = 1e-6, ignore_index: int = 255):
+    def __init__(self, num_classes: int = 6, smooth: float = 1e-5):
         super().__init__()
         self.num_classes = num_classes
         self.smooth = smooth
-        self.ignore_index = ignore_index
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        """
-        logits: (B, C, H, W)
-        targets: (B, H, W) with class indices [0, ..., C-1]
-        """
         probs = F.softmax(logits, dim=1)
-        
-        # Mask out ignore index if present
-        valid_mask = (targets != self.ignore_index)
-        targets = targets * valid_mask.long()
-
-        # One-hot encode targets
         one_hot = F.one_hot(targets.clamp(0, self.num_classes - 1), num_classes=self.num_classes)
-        one_hot = one_hot.permute(0, 3, 1, 2).float() # (B, C, H, W)
+        one_hot = one_hot.permute(0, 3, 1, 2).float()  # (B, C, H, W)
 
-        # Apply valid mask
-        valid_mask = valid_mask.unsqueeze(1).float()
-        probs = probs * valid_mask
-        one_hot = one_hot * valid_mask
+        # 1. Binary wound bed Dice (wound vs background)
+        wound_prob = 1.0 - probs[:, 0]
+        wound_target = (targets > 0).float()
+        wound_inter = (wound_prob * wound_target).sum(dim=(1, 2))
+        wound_card = (wound_prob + wound_target).sum(dim=(1, 2))
+        wound_dice = (2.0 * wound_inter + self.smooth) / (wound_card + self.smooth)
 
-        # Compute Dice per class (dim=(2, 3) over H, W)
-        intersection = (probs * one_hot).sum(dim=(2, 3))
-        cardinality = (probs.pow(2) + one_hot.pow(2)).sum(dim=(2, 3))
+        # 2. Per-class tissue Dice for classes present in ground truth
+        inter = (probs * one_hot).sum(dim=(0, 2, 3))
+        card = (probs + one_hot).sum(dim=(0, 2, 3))
+        present = (one_hot.sum(dim=(0, 2, 3)) > 0)
         
-        dice_score = (2.0 * intersection + self.smooth) / (cardinality + self.smooth)
-        
-        # Average across foreground classes (1 to C-1) to emphasize clinical tissues
-        foreground_dice = dice_score[:, 1:].mean()
-        return 1.0 - foreground_dice
+        tissue_dice = (2.0 * inter + self.smooth) / (card + self.smooth)
+        tissue_dice_foreground = tissue_dice[1:][present[1:]]
+
+        if tissue_dice_foreground.numel() > 0:
+            loss = 1.0 - (0.5 * wound_dice.mean() + 0.5 * tissue_dice_foreground.mean())
+        else:
+            loss = 1.0 - wound_dice.mean()
+
+        return loss
 
 
 class FocalLoss(nn.Module):

@@ -59,6 +59,22 @@ class WoundMaskEncoder:
             rgb[mask_indices == class_id] = color
         return rgb
 
+    def class_indices_to_rgba(self, mask_indices: np.ndarray) -> np.ndarray:
+        """
+        Converts an index mask (H, W) to RGBA (H, W, 4) where:
+        - Class 0 (Background) and 255 (Ignore) are 100% transparent (alpha = 0).
+        - Wound tissues (Classes 1-5) are colored with alpha = 255 for clean overlays.
+        """
+        h, w = mask_indices.shape[:2]
+        rgba = np.zeros((h, w, 4), dtype=np.uint8)
+        for class_id, color in self.color_map.items():
+            if class_id == 0 or class_id == 255:
+                continue
+            is_class = (mask_indices == class_id)
+            rgba[is_class, 0:3] = color
+            rgba[is_class, 3] = 255
+        return rgba
+
     def compute_tissue_composition(self, mask_indices: np.ndarray) -> Dict[str, Any]:
         """
         Computes the clinical area and percentage composition of each tissue type.

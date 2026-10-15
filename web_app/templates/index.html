@@ -11,11 +11,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
   
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Local Chart.js (Zero CDN dependency, works 100% offline) -->
+  <script src="/static/js/chart.min.js?v=2.6"></script>
   
-  <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- CSS Stylesheet with Cache Buster -->
+  <link rel="stylesheet" href="/static/css/style.css?v=2.6">
 </head>
 <body>
 
@@ -53,12 +53,23 @@
           <span>آپلود تصویر بیمار</span>
           <span class="spinner" id="loadingSpinner"></span>
         </div>
-        <div class="upload-dropzone" id="uploadDropzone">
-          <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        
+        <div class="upload-dropzone" id="uploadDropzone" style="cursor: pointer;">
           <div class="upload-icon">📷</div>
-          <p style="font-size: 0.9rem; font-weight: 600;">کلیک یا کشیدن عکس گوشی موبایل</p>
-          <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">فرمت‌های JPG، PNG و WebP</p>
+          <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 4px;">برای انتخاب عکس کلیک کنید</p>
+          <p style="font-size: 0.75rem; color: var(--text-dim);">یا عکس را داخل این کادر رها کنید (JPG, PNG)</p>
         </div>
+
+        <div id="fileSelectedInfo" style="display: none; margin-top: 10px; padding: 8px 12px; background: rgba(58, 134, 255, 0.15); border: 1px solid rgba(58, 134, 255, 0.3); border-radius: 8px; text-align: center;">
+          <span style="font-size: 0.8rem; color: #93c5fd; font-weight: 600;">📁 فایل انتخاب‌شده: </span>
+          <span id="selectedFileName" style="font-size: 0.8rem; color: #ffffff; font-weight: 700;"></span>
+        </div>
+
+        <button id="btnAnalyze" style="width: 100%; margin-top: 12px; padding: 11px; background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
+          <span>🔍</span> تحلیل هوشمند زخم (Analyze Wound)
+        </button>
 
         <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 0.8rem; color: var(--text-muted);">سنجش کیفیت تصویر:</span>
@@ -81,9 +92,10 @@
         <div class="card-title">
           <span>ترکیب درصدی بافت‌های زخم</span>
         </div>
-        <div style="height: 200px; position: relative;">
+        <div style="height: 200px; position: relative;" id="chartContainer">
           <canvas id="tissuePieChart"></canvas>
         </div>
+        <div id="fallbackTissueBars" style="display: none; margin-top: 10px;"></div>
         
         <div class="legend-grid">
           <div class="legend-item"><div class="legend-dot" style="background: var(--color-granulation);"></div>گرانولاسیون (سرخ)</div>
@@ -95,8 +107,11 @@
     </aside>
 
     <!-- Main Content: Viewer, Metrics & Clinical CDSS -->
-    <main>
+    <main id="mainResults">
       
+      <!-- Status Banner -->
+      <div id="statusAlert" style="display: none; padding: 12px 18px; margin-bottom: 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);"></div>
+
       <!-- Metrics Row -->
       <div class="stats-grid">
         <div class="stat-card hi">
@@ -127,17 +142,20 @@
       <!-- Viewer Container -->
       <div class="card">
         <div class="card-title">
-          <span>پایش بصری و اورلی پیکسلی بافت‌ها</span>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span>پایش بصری و اورلی پیکسلی بافت‌ها</span>
+            <span id="activeCaseBadge" style="font-size: 0.78rem; color: #38bdf8; font-weight: 700; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 10px; border-radius: 6px;">پرونده: در حال بارگذاری</span>
+          </div>
           <span style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: normal;">تفکیک هوشمند ۵ کلاسه (LUTSeg Canonical)</span>
         </div>
 
         <div class="viewer-container">
-          <!-- Image Box 1: Original with Canvas Overlay -->
+          <!-- Image Box 1: Original with Overlay Mask -->
           <div>
-            <div class="image-box">
+            <div class="image-box" style="position: relative;">
               <span class="box-tag">تصویر بالینی + پوشش ماسک</span>
-              <img id="originalImg" src="" alt="Clinical Wound Photo">
-              <canvas id="overlayCanvas"></canvas>
+              <img id="originalImg" src="" alt="Clinical Wound Photo" style="width: 100%; height: 100%; object-fit: contain;">
+              <img id="overlayMaskImg" src="" alt="Overlay Mask" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; opacity: 0.45; transition: none;">
             </div>
             
             <div class="slider-control">
@@ -151,10 +169,10 @@
           <div>
             <div class="image-box">
               <span class="box-tag">ماسک ۵ بافت تفکیک‌شده</span>
-              <img id="maskImg" src="" alt="Predicted Tissue Mask">
+              <img id="maskImg" src="" alt="Predicted Tissue Mask" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
             <p style="font-size: 0.78rem; color: var(--text-dim); text-align: center; margin-top: 10px;">
-              تولیدشده توسط مدل مقرون‌به‌صرفه Cost-Effective UNet در کمتر از ۱۵۰ میلی‌ثانیه
+              تولیدشده توسط مدل سبک Cost-Effective UNet در کمتر از ۱۵۰ میلی‌ثانیه
             </p>
           </div>
         </div>
@@ -200,7 +218,7 @@
     </main>
   </div>
 
-  <!-- JavaScript -->
-  <script src="/static/js/app.js"></script>
+  <!-- JavaScript Application Logic with Cache Buster -->
+  <script src="/static/js/app.js?v=2.6"></script>
 </body>
 </html>

@@ -33,7 +33,7 @@ class ProcessedWoundDataset:
         if patient_ids:
             self.samples = [
                 f for f in all_sample_files
-                if any(f.stem.startswith(pid) for pid in patient_ids)
+                if any(f.stem.startswith(pid + "_") for pid in patient_ids)
             ]
         else:
             self.samples = all_sample_files
